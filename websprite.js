@@ -491,14 +491,14 @@ function animatePositions() {
             sprite.x += sprite.vx * frames;
             sprite.y += sprite.vy * frames;
 
-            if (sprite.vx > 0 && sprite.x > w - config.tileW)
+            if (sprite.vx > 0 && sprite.x > w - config.tileW * scale)
                 sprite.vx *= -1;
             else if (sprite.vx < 0 && sprite.x <= 0)
                 sprite.vx *= -1;
 
             if (sprite.vy < 0 && sprite.y <= 0)
                 sprite.vy *= -1;
-            else if (sprite.vy > 0 && sprite.y > h - config.tileH)
+            else if (sprite.vy > 0 && sprite.y > h - config.tileH * scale)
                 sprite.vy *= -1;
 
             instances.set(i, {
