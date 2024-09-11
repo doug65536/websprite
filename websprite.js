@@ -11,9 +11,9 @@ let gl = canvas.getContext('webgl2');
 
 const ext = gl.getExtension('GMAN_debug_helper');
 if (ext) {
-  ext.setConfiguration({
-    failUnsetSamplerUniforms: true,
-  });
+    ext.setConfiguration({
+        failUnsetSamplerUniforms: true,
+    });
 }
 
 let sprites = [];
@@ -75,48 +75,43 @@ function imageAsync(url) {
     });
 }
 
-function arrayTraits(type) {
-    let ctor;
-    let floating = false;
-    let size;
-    switch (type) {
-    case gl.UNSIGNED_BYTE:
-        ctor = Uint8Array;
-        size = 1;
-        break;
-    case gl.UNSIGNED_SHORT:
-        ctor = Uint16Array;
-        size = 2;
-        break;
-    case gl.UNSIGNED_INT:
-        ctor = Uint32Array;
-        size = 4;
-        break;
-    case gl.BYTE:
-        ctor = Int8Array;
-        size = 1;
-        break;
-    case gl.SHORT:
-        ctor = Int16Array;
-        size = 2;
-        break;
-    case gl.INT:
-        ctor = Int32Array;
-        size = 4;
-        break;
-    case gl.FLOAT:
-        ctor = Float32Array;
-        size = 4;
-        floating = true;
-        break;
-    }
-
-    return {
-        ctor,
-        size,
-        floating
-    };
-}
+const arrayTraits = Object.freeze(Object.fromEntries([
+    [gl.UNSIGNED_BYTE, {
+        ctor: Uint8Array,
+        size: Uint8Array.BYTES_PER_ELEMENT,
+        floating: false
+    }],
+    [gl.UNSIGNED_SHORT, {
+        ctor: Uint16Array,
+        size: Uint16Array.BYTES_PER_ELEMENT,
+        floating: false
+    }],
+    [gl.UNSIGNED_INT, {
+        ctor: Uint32Array,
+        size: Uint32Array.BYTES_PER_ELEMENT,
+        floating: false
+    }],
+    [gl.BYTE, {
+        ctor: Int8Array,
+        size: Int8Array.BYTES_PER_ELEMENT,
+        floating: false
+    }],
+    [gl.SHORT, {
+        ctor: Int16Array,
+        size: Int16Array.BYTES_PER_ELEMENT,
+        floating: false
+    }],
+    [gl.INT, {
+        ctor: Int32Array,
+        size: Int32Array.BYTES_PER_ELEMENT,
+        floating: false
+    }],
+    [gl.FLOAT, {
+        ctor: Float32Array,
+        size: Float32Array.BYTES_PER_ELEMENT,
+        floating: true
+    }]
+]));
 
 class SoA {
     capacity = 0;
@@ -147,7 +142,7 @@ class SoA {
                 fieldInfo = rawFieldInfo;
             }
 
-            let traits = arrayTraits(fieldInfo.type);
+            let traits = arrayTraits[fieldInfo.type];
 
             let size = traits.size * capacity;
 
@@ -220,7 +215,7 @@ class SoA {
 
             let type = fieldInfo.type;
 
-            let traits = arrayTraits(type);
+            let traits = arrayTraits[type];
 
             let offset = fieldInfo.offset * scale;
             let size = fieldInfo.size * scale;
