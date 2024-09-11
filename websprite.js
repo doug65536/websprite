@@ -4,6 +4,8 @@ const alignment = 64;
 
 let canvas = document.querySelector('#render-canvas');
 
+const scale = 2;
+
 /** @type {WebGL2RenderingContext} */
 let gl = canvas.getContext('webgl2');
 
@@ -426,8 +428,8 @@ for (let sy = 0; sy + config.tileH <= config.atlasH; sy += config.tileH) {
             dy: 0,
             dz: 0,
 
-            dw: config.tileW,
-            dh: config.tileH,
+            dw: config.tileW * scale,
+            dh: config.tileH * scale,
 
             sx,
             sy,
