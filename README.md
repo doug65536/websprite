@@ -56,7 +56,8 @@ instances.upload();
 
 before you render.
 
-See the demo.js for an example.
+See the [demo.js](https://github.com/doug65536/websprite/blob/main/demo.js)
+for an example.
 
 ## Art
 

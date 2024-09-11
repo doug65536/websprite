@@ -1,130 +1,16 @@
 import {
-    gl, canvas, frameHolder, getFile, getConfig, imageAsync, SoA
+    gl, canvas, frameHolder, getFile, getConfig, imageAsync, SoA,
+    setUpSpriteShaders
 } from "./websprite.js";
 
-const frameDepth = 65536;
 const scale = 2;
 let sprites = [];
 
-/** @type {WebGLTexture} */
-let sheet = gl.createTexture();
-
-const vertexShaderSourcePromise =
-    getFile('instanced_sprite_vertex.glsl');
-
-const fragmentShaderSourcePromise =
-    getFile('instanced_sprite_fragment.glsl');
-
-const config = await getConfig();
-
-const atlasPromise = imageAsync(config.atlas);
-
-const vertexShaderSource = await vertexShaderSourcePromise;
-const fragmentShaderSource = await fragmentShaderSourcePromise;
-const atlas = await atlasPromise;
-
-await init(atlas);
-
-async function init(/** @type {HTMLImageElement} */ atlas) {
-    if (atlas.width & (atlas.width - 1))
-        throw new Error("Atlas width is not a power of two");
-    if (atlas.height & (atlas.height - 1))
-        throw new Error("Atlas width is not a power of two");
-
-    gl.bindTexture(gl.TEXTURE_2D, sheet);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,
-        gl.UNSIGNED_BYTE, atlas);
-}
-
-
-const spriteRenderData = {
-    // Screen position
-    dx: gl.FLOAT,
-    dy: gl.FLOAT,
-    dz: gl.FLOAT,
-
-    // Screen size
-    dw: gl.FLOAT,
-    dh: gl.FLOAT,
-
-    // Texture atlas position
-    sx: gl.FLOAT,
-    sy: gl.FLOAT,
-
-    // Texture atlas size
-    sw: gl.FLOAT,
-    sh: gl.FLOAT
-};
-
-const program = gl.createProgram();
-
-const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-
-gl.shaderSource(vertexShader, vertexShaderSource);
-gl.shaderSource(fragmentShader, fragmentShaderSource);
-
-gl.compileShader(vertexShader);
-gl.compileShader(fragmentShader);
-
-const vertexDiagnostics = gl.getShaderInfoLog(vertexShader);
-const fragmentDiagnostics = gl.getShaderInfoLog(fragmentShader);
-
-if (vertexDiagnostics)
-    console.log('vertex diagnostics:\n' + vertexDiagnostics);
-if (fragmentDiagnostics)
-    console.log('fragment diagnostics:\n' + fragmentDiagnostics);
-
-gl.attachShader(program, vertexShader);
-gl.attachShader(program, fragmentShader);
-gl.linkProgram(program);
-
-gl.useProgram(program);
-const inverseFrameWLoc = gl.getUniformLocation(
-    program, 'inverseFrameW');
-const inverseFrameHLoc = gl.getUniformLocation(
-    program, 'inverseFrameH');
-const inverseFrameDLoc = gl.getUniformLocation(
-    program, 'inverseFrameD');
-
-const inverseTexWLoc = gl.getUniformLocation(
-    program, 'inverseTexW');
-const inverseTexHLoc = gl.getUniformLocation(
-    program, 'inverseTexH');
-
-gl.uniform1f(inverseTexWLoc, 1 / atlas.width);
-gl.uniform1f(inverseTexHLoc, 1 / atlas.height);
-
-autoResize(program);
-
-gl.uniform1f(inverseFrameDLoc, 1 / frameDepth);
-
-const vao = gl.createVertexArray();
-gl.bindVertexArray(vao);
-const atlasLoc = gl.getUniformLocation(program, 'atlas');
-gl.activeTexture(gl.TEXTURE0);
-gl.bindTexture(gl.TEXTURE_2D, sheet);
-gl.uniform1i(atlasLoc, 0);
-
-const vertexNumbers = new Uint32Array([0, 2, 3, 1]);
-const vertexBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-gl.bufferData(gl.ARRAY_BUFFER,
-    vertexNumbers, gl.STATIC_DRAW);
-const vertexNumberLoc = gl.getAttribLocation(program, 'vertexNumber');
-gl.vertexAttribIPointer(vertexNumberLoc, 1, gl.INT, 0, 0);
-gl.enableVertexAttribArray(vertexNumberLoc);
-
-const instanceBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, instanceBuffer);
-const instances = new SoA(program, spriteRenderData, 4096);
-
-gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-gl.enable(gl.BLEND);
+const {
+    config,
+    instances,
+    vao
+ } = await setUpSpriteShaders();
 
 for (let sy = 0; sy + config.tileH <= config.atlasH; sy += config.tileH) {
     for (let sx = 0; sx + config.tileW <= config.atlasW; sx += config.tileW) {
@@ -235,7 +121,7 @@ function animatePositions() {
     }
 }
 
-frameHolder.current = function frame() {
+frameHolder.current = function frame(program) {
     animatePositions();
 
     gl.useProgram(program);
@@ -245,27 +131,4 @@ frameHolder.current = function frame() {
         0, 4, instances.count);
     gl.bindVertexArray(null);
     gl.useProgram(null);
-}
-
-
-function updateSize(program) {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
-
-    canvas.width = w;
-    canvas.height = h;
-
-    canvas.style.width = w + 'px';
-    canvas.style.height = h + 'px';
-
-    gl.useProgram(program);
-
-    gl.uniform1f(inverseFrameWLoc, 1 / w);
-    gl.uniform1f(inverseFrameHLoc, 1 / h);
-    gl.viewport(0, 0, w, h);
-}
-
-function autoResize(program) {
-    window.addEventListener('resize', updateSize.bind(null, program));
-    updateSize(program);
 }
