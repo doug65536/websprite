@@ -20,7 +20,43 @@ The test renders 3072 sprites moving randomly.
 It uses an SoA format to pack the instance data in a data oriented
 SIMD-friendly layout.
 
+You load one big atlas texture for all of the sprites.
 
+Each sprite is described by:
+
+| Variable   | Meaning                  |
+|------------|--------------------------|
+| dx, dy, dz | Position                 |
+| dw, dh     | Output size              |
+| sx, sy     | Source position in atlas |
+| sw, sh     | Size of sprite in atlas  |
+
+- You can give a different dw,dh than sw,sh and it will scale it
+- You can make every sprite start at an arbitrary position in the atlas
+- You can make every sprite a different size
+- You can make the dw and/or dh zero and that sprite will not be drawn
+
+In javascript, the SoA class holds the instance data and manages
+formatting the data for optimal SIMD performance, and performs GPU uploads
+
+You can adjust the parameters for sprite `i` by:
+
+```
+instances.set(i, {
+    dx: 42,
+    dy: 84
+});
+```
+
+As long as you eventually call
+
+```
+instances.upload();
+```
+
+before you render.
+
+See the demo.js for an example.
 
 ## Art
 
