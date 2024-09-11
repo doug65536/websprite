@@ -7,6 +7,7 @@ in the current directory.
 ```
 git clone https://github.com/doug65536/websprite.git
 cd websprite
+npm install
 npm start
 ```
 

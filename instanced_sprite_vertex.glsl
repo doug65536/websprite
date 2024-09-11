@@ -82,7 +82,7 @@ void main() {
         ndx += ndw;
     }
 
-    if (i >= 2) {
+    if ((i & 2) != 0) {
         // Bottom texcoord
         ty += sh;
 
