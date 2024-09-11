@@ -1,6 +1,5 @@
 import {
-    gl, canvas, frameHolder, getFile, getConfig, imageAsync, SoA,
-    setUpSpriteShaders
+    gl, canvas, frameHolder, setUpSpriteShaders
 } from "./websprite.js";
 
 const scale = 2;
