@@ -3,6 +3,7 @@ const alignment = 64;
 const frameDepth = 65536;
 
 let spriteProgram;
+let vao;
 
 // Direct access to sprite instance data
 let instances;
@@ -185,6 +186,10 @@ export class SoA {
 
             this.fieldArrays[info.name] = info.data;
         }
+    }
+
+    clear() {
+        this.count = 0;
     }
 
     reserve(arbitraryCapacity) {
@@ -398,7 +403,7 @@ export async function setUpSpriteShaders() {
 
     gl.uniform1f(inverseFrameDLoc, 1 / frameDepth);
 
-    const vao = gl.createVertexArray();
+    vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
     const atlasLoc = gl.getUniformLocation(spriteProgram, 'atlas');
     gl.activeTexture(gl.TEXTURE0);
@@ -423,8 +428,7 @@ export async function setUpSpriteShaders() {
 
     return {
         config,
-        instances,
-        vao
+        instances
     };
 }
 
@@ -461,8 +465,20 @@ function requestFrame() {
 function frameWrapper() {
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
+
     frameHolder.current?.(spriteProgram);
+
+    gl.useProgram(spriteProgram);
+    gl.bindVertexArray(vao);
+    instances.upload();
+    gl.drawArraysInstanced(gl.TRIANGLE_FAN,
+        0, 4, instances.count);
+    gl.bindVertexArray(null);
+    gl.useProgram(null);
+
     requestFrame();
 }
 
-frameWrapper();
+export function startAnimating() {
+    frameWrapper();
+}

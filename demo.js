@@ -1,15 +1,13 @@
 import {
-    gl, canvas, frameHolder, setUpSpriteShaders
+    canvas, frameHolder, setUpSpriteShaders, startAnimating
 } from "./websprite.js";
 
 const scale = 2;
-let sprites = [];
 
 const {
     config,
-    instances,
-    vao
- } = await setUpSpriteShaders();
+    instances
+} = await setUpSpriteShaders();
 
 for (let sy = 0; sy + config.tileH <= config.atlasH; sy += config.tileH) {
     for (let sx = 0; sx + config.tileW <= config.atlasW; sx += config.tileW) {
@@ -91,6 +89,11 @@ function animatePositions() {
             else if (sprite.vx < 0 && sprite.x <= 0)
                 sprite.vx *= -1;
 
+            if (sprite.x < 0)
+                sprite.x = 0;
+            if (sprite.y < 0)
+                sprite.y = 0;
+
             if (sprite.vy < 0 && sprite.y <= 0)
                 sprite.vy *= -1;
             else if (sprite.vy > 0 && sprite.y > h - config.tileH * scale)
@@ -120,14 +123,8 @@ function animatePositions() {
     }
 }
 
-frameHolder.current = function frame(program) {
+frameHolder.current = function frame() {
     animatePositions();
-
-    gl.useProgram(program);
-    gl.bindVertexArray(vao);
-    instances.upload();
-    gl.drawArraysInstanced(gl.TRIANGLE_FAN,
-        0, 4, instances.count);
-    gl.bindVertexArray(null);
-    gl.useProgram(null);
 }
+
+startAnimating();
