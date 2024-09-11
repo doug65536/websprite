@@ -2,9 +2,17 @@
 
 ## Install
 
+This will create a "websprite" directory
+in the current directory.
 ```
-git clone
+git clone https://github.com/doug65536/websprite.git
+cd websprite
+npm start
 ```
+
+Use one of the links in the output to open the page.
+
+The test renders 3072 sprites moving randomly.
 
 ## Code
 
