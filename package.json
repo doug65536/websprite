@@ -1,0 +1,15 @@
+{
+  "name": "websprite",
+  "version": "1.0.0",
+  "description": "Super fast transparent sprite renderer with webgl2",
+  "main": "websprite.html",
+  "scripts": {
+    "start": "node_modules/.bin/http-server",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
