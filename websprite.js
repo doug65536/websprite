@@ -35,15 +35,19 @@ async function getConfig() {
     return await getJson('config.json');
 }
 
-const vertexShaderSource =
-    await getFile('instanced_sprite_vertex.glsl');
+const vertexShaderSourcePromise =
+    getFile('instanced_sprite_vertex.glsl');
 
-const fragmentShaderSource =
-    await getFile('instanced_sprite_fragment.glsl');
+const fragmentShaderSourcePromise =
+    getFile('instanced_sprite_fragment.glsl');
 
 const config = await getConfig();
 
-const atlas = await imageAsync(config.atlas);
+const atlasPromise = imageAsync(config.atlas);
+
+const vertexShaderSource = await vertexShaderSourcePromise;
+const fragmentShaderSource = await fragmentShaderSourcePromise;
+const atlas = await atlasPromise;
 
 await init(atlas);
 
@@ -508,20 +512,21 @@ function animatePositions() {
         }
         instances.upload();
         return;
+    } else {
+        const off = (Date.now() % 15000) / 15000 * Math.PI * 2;
+        const step = Math.PI * 2 / instances.count;
+        let a = off;
+        const halfW = (+canvas.width - config.tileW) / 2;
+        const halfH = (+canvas.height - config.tileH) / 2;
+        for (let i = 0; i < instances.count; ++i, a += step) {
+            const f = i / instances.count;
+            instances.set(instances.count - i - 1, {
+                dx: Math.sin(-a * 8 + f * Math.PI * 2) * f * halfW + halfW,
+                dy: Math.cos(-a * 8 + f * Math.PI * 2) * f * halfH + halfH
+            }, true);
+        }
+        instances.upload();
     }
-    const off = (Date.now() % 15000) / 15000 * Math.PI * 2;
-    const step = Math.PI * 2 / instances.count;
-    let a = off;
-    const halfW = (+canvas.width - config.tileW) / 2;
-    const halfH = (+canvas.height - config.tileH) / 2;
-    for (let i = 0; i < instances.count; ++i, a += step) {
-        const f = i / instances.count;
-        instances.set(instances.count - i - 1, {
-            dx: Math.sin(-a * 8 + f * Math.PI * 2) * f * halfW + halfW,
-            dy: Math.cos(-a * 8 + f * Math.PI * 2) * f * halfH + halfH
-        }, true);
-    }
-    instances.upload();
 }
 
 function dumpProgramVariables() {
